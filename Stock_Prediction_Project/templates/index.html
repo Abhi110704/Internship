@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Price Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js CDN -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://img.freepik.com/premium-photo/3d-rendering-stock-indexes-virtual-space-economic-growth-recession_232104-2220.jpg?w=1380') no-repeat center center fixed, linear-gradient(to bottom, #1a1a2e, #16213e);
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 90%;
+            max-width: 1100px;
+            background: rgba(0, 0, 0, 0.7); /* Reduced transparency */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7); /* Stronger shadow for depth */
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #e6e6ff;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        form {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+            color: #d3d3d3;
+        }
+
+        input[type="text"] {
+            width: 50%;
+            padding: 8px;
+            font-size: 1em;
+            border: 1px solid #666;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus {
+            border-color: #6f86d6;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+        }
+
+        button {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            background: linear-gradient(to right, #6f86d6, #48c6ef);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #48c6ef, #6f86d6);
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        h2 {
+            font-size: 1.7em;
+            margin-top: 20px;
+            color: #e0e0ff;
+        }
+
+        h2 span {
+            color: #48c6ef;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 1em;
+            margin-top: 10px;
+            display: none;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 1000px;
+            max-height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            input[type="text"] {
+                width: 80%;
+            }
+
+            .container {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .stock-image {
+                max-width: 100%;
+                height: auto;
+            }
+
+            #chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Adjusted image styles to ensure it fits in container */
+        .stock-image {
+            width: 100%; /* Full width of the container */
+            max-width: 500px; /* Maximum width set to 500px */
+            height: auto; /* Maintain aspect ratio */
+            margin-top: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            object-fit: cover; /* Ensure the image fits within the container */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Market Price Prediction in Dollars</h1>
+
+        <form id="stockForm">
+            <label for="stock_ticker">Enter Stock Symbol (e.g., AAPL, GOOGL, MSFT):</label>
+            <input type="text" id="stock_ticker" name="stock_ticker" placeholder="Enter stock symbol" required>
+            <button type="submit">Predict</button>
+        </form>
+
+        <div class="stock-prediction-container hidden" id="predictionContainer">
+            <h2>Predicted Stock Price in $ : <span id="predictionResult">N/A</span></h2>
+        </div>
+
+        <p class="error-message" id="errorMessage"></p>
+
+        <div class="stock-image-container">
+            <img class="stock-image" src="https://plus.unsplash.com/premium_photo-1664476845274-27c2dabdd7f0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3RvY2slMjBtYXJrZXR8ZW58MHx8MHx8fDA%3D" alt="Stock Market Image">
+        </div>
+
+        <div class="right-content" id="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <div class="links">
+            <p>Explore Stock Market Information:</p>
+            <a href="https://www.investing.com/" target="_blank">Investing.com</a>
+            <a href="https://www.marketwatch.com/" target="_blank">MarketWatch</a>
+            <a href="https://finance.yahoo.com/" target="_blank">Yahoo Finance</a>
+        </div>
+    </div>
+
+    <script>
+        let stockChart;  // Declare the chart globally to ensure it can be accessed
+
+        document.getElementById("stockForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const stockTicker = document.getElementById("stock_ticker").value;
+            const predictionContainer = document.getElementById("predictionContainer");
+            const errorMessage = document.getElementById("errorMessage");
+            const predictionResult = document.getElementById("predictionResult");
+
+            predictionContainer.classList.add("hidden");
+            errorMessage.style.display = "none";
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ stock_ticker: stockTicker })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch prediction. Please try again.");
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                predictionResult.textContent = `$${data.predicted_price.toFixed(2)}`;
+                predictionContainer.classList.remove("hidden");
+
+                // Get the canvas element
+                const ctx = document.getElementById("stockChart").getContext("2d");
+
+                // Destroy the existing chart if it exists
+                if (stockChart) {
+                    stockChart.destroy();
+                }
+
+                // Create a new chart instance
+                stockChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: ["2024-12-01", "2024-12-02", "2024-12-03", "2024-12-04", "2024-12-05"],
+                        datasets: [{
+                            label: "Stock Price (USD)",
+                            data: [1200, 1225, 1215, 1230, 1245], // Replace with actual historical prices
+                            borderColor: "rgb(75, 192, 192)",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            fill: true
+                        }]
+                    }
+                });
+
+                document.getElementById("chart-container").style.visibility = "visible";
+                document.getElementById("chart-container").style.opacity = "1";
+
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
