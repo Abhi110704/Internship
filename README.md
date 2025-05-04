@@ -18,9 +18,6 @@ Welcome to my Internship Projects repository! This collection showcases my pract
 - **Stock Prediction Project**  
   Time series prediction and stock price forecasting using LSTM and financial data analysis.
 
-- **CV Abhiyanshu Anand.pdf**  
-  My detailed Curriculum Vitae for academic and professional reference.
-
 - **Resume.pdf**  
   A concise resume overview highlighting my skills and achievements.
 
